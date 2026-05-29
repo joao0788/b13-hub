@@ -7,18 +7,21 @@ const logger = pino();
 
 const app: Express = express();
 
+// middleware simples de log (substitui pino-http)
 app.use((req: Request, res: Response, next) => {
-  (req as any).id = crypto.randomUUID?.() ?? Math.random().toString(36);
+  const start = Date.now();
+
+  res.on("finish", () => {
+    logger.info({
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      responseTime: Date.now() - start,
+    });
+  });
+
   next();
 });
-
-app.use(
-  pino({
-    transport: {
-      target: "pino-pretty",
-    },
-  })
-);
 
 app.use(cors());
 app.use(express.json());
