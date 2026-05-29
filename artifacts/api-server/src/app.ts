@@ -1,27 +1,21 @@
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
-const pinoHttp = require("pino-http").default ?? require("pino-http");
+import pino from "pino";
 import router from "./routes";
-import { logger } from "./lib/logger";
+
+const logger = pino();
 
 const app: Express = express();
 
+app.use((req: Request, res: Response, next) => {
+  (req as any).id = crypto.randomUUID?.() ?? Math.random().toString(36);
+  next();
+});
+
 app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req: Request) {
-        return {
-          id: (req as any).id,
-          method: req.method,
-          url: req.url?.split("?")[0],
-        };
-      },
-      res(res: Response) {
-        return {
-          statusCode: res.statusCode,
-        };
-      },
+  pino({
+    transport: {
+      target: "pino-pretty",
     },
   })
 );
