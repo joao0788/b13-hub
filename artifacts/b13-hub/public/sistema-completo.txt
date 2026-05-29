@@ -1,0 +1,225 @@
+================================================================
+  B13 CORINGA FFH4X — PROMPT COMPLETO PARA RECRIAR O SISTEMA
+  Discord: discord.gg/tDsNEjWT4j
+================================================================
+
+Este arquivo contém todas as informações necessárias para
+recriar o sistema B13 CORINGA FFH4X do zero em qualquer
+plataforma de hospedagem.
+
+================================================================
+  STACK TECNOLÓGICA
+================================================================
+
+Backend (API):
+  - Node.js 24 + TypeScript
+  - Express 5
+  - PostgreSQL + Drizzle ORM
+  - Zod v4 para validação
+  - Pino para logs
+  - Porta padrão: 5000
+
+Frontend (Site):
+  - React 18 + Vite
+  - TailwindCSS v4
+  - TanStack Query (React Query)
+  - Wouter (roteamento)
+  - date-fns (formatação de datas)
+  - Lucide React (ícones)
+  - shadcn/ui (componentes base)
+  - Fonte: Rajdhani + Share Tech Mono (Google Fonts)
+
+Monorepo:
+  - pnpm workspaces
+  - OpenAPI spec → Orval codegen (hooks React Query + Zod schemas)
+
+================================================================
+  PROMPT PARA RECRIAR NO REPLIT AGENT
+================================================================
+
+"Quero criar o site B13 CORINGA FFH4X, um hub para script de
+Roblox em português do Brasil. O site deve ter:
+
+1. SITE (React + Vite, tema escuro cyberpunk, verde neon em
+   fundo preto, fontes Rajdhani e Share Tech Mono):
+
+   Página Início (/):
+   - Título grande: B13 CORINGA FFH4X
+   - Tagline: DOMINE O LOBBY. ATIVE O SCRIPT. SEM MISERICÓRDIA.
+   - Botão de download da script (.lua)
+   - Botão de download do sistema completo (.txt)
+   - Stats ao vivo: total de keys, keys ativas, expiradas, permanentes
+   - Caixa com o loadstring dinâmico (usa window.location.origin)
+     copiável com botão
+   - Grid com todas as funcionalidades da script
+
+   Página Gerador de Keys (/keys):
+   - Formulário: selecionar duração (1min, 1dia, 3dias, 7dias,
+     30dias, permanente), campo de observação opcional, botão gerar
+   - Lista de todas as keys com status (ativa/expirada/revogada),
+     data de expiração formatada em pt-BR, botão copiar, botão revogar
+
+   Página Validar Key (/validate):
+   - Campo para colar a key
+   - Botão verificar
+   - Resultado: ACESSO LIBERADO (verde) ou ACESSO NEGADO (vermelho)
+   - Mostra duração, data de expiração e observação se válida
+
+2. API (Express + PostgreSQL):
+
+   Tabela 'keys':
+   - id (serial PK)
+   - key_value (text, unique) — formato: B13-[16 chars hex maiúsculo]
+   - duration (text) — enum: 1min, 1day, 3days, 7days, 30days, permanent
+   - expires_at (timestamp, nullable) — null = permanente
+   - active (boolean, default true)
+   - note (text, nullable)
+   - created_at (timestamp, default now)
+
+   Endpoints:
+   POST   /api/keys/generate         — gera uma nova key
+   GET    /api/keys                  — lista todas as keys
+   GET    /api/keys/stats            — retorna total, ativas, expiradas, permanentes
+   GET    /api/keys/validate/:key    — valida uma key
+   DELETE /api/keys/:id              — revoga uma key (soft delete: active=false)
+
+   Lógica de expiração:
+   - 1min  → +60 segundos
+   - 1day  → +1 dia
+   - 3days → +3 dias
+   - 7days → +7 dias
+   - 30days→ +30 dias
+   - permanent → expires_at = null
+
+3. SCRIPT LUA (b13-coringa.lua) servida como arquivo estático:
+   [incluída separadamente — baixe b13-coringa.lua]
+
+4. ARQUIVO PÚBLICO:
+   - /b13-coringa.lua   — script Lua para download e loadstring
+   - /sistema-completo.txt — este arquivo
+
+Arquivo estático da script deve ser servido pelo Vite via pasta public/.
+O loadstring no site deve usar window.location.origin + BASE_URL para
+construir a URL correta dinamicamente."
+
+================================================================
+  SCHEMA DO BANCO DE DADOS (SQL)
+================================================================
+
+CREATE TABLE IF NOT EXISTS keys (
+  id          SERIAL PRIMARY KEY,
+  key_value   TEXT NOT NULL UNIQUE,
+  duration    TEXT NOT NULL,
+  expires_at  TIMESTAMP,
+  active      BOOLEAN NOT NULL DEFAULT TRUE,
+  note        TEXT,
+  created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+================================================================
+  VARIÁVEIS DE AMBIENTE NECESSÁRIAS
+================================================================
+
+DATABASE_URL  — string de conexão PostgreSQL
+              ex: postgresql://user:pass@host:5432/dbname
+SESSION_SECRET— segredo para sessões (opcional se não usar auth)
+PORT          — porta do servidor (padrão 5000)
+
+================================================================
+  FUNCIONALIDADES DA SCRIPT LUA
+================================================================
+
+Principal:
+  - WalkSpeed configurável (16–600)
+  - JumpPower configurável (50–600)
+  - Auto Pulo
+  - Pulo Infinito (InfJump)
+  - Spin Bot com velocidade
+  - FullBright
+  - Voar (WASD + Space/Ctrl)
+  - NoClip (atravessar paredes)
+  - God Mode (vida infinita)
+
+Aimbot:
+  - Aimbot com FOV configurável
+  - Suavidade configurável
+  - Seleção de parte do corpo (Head/UpperTorso/Torso/HumanoidRootPart)
+  - Sem Recuo
+  - Círculo de FOV visível na tela (com RGB animado)
+
+ESP (todos sem ghosts — limpeza correta no respawn/saída):
+  - Highlight ESP (cor configurável)
+  - ESP Caixa (com RGB animado, tamanho correto R6 e R15)
+  - ESP Esqueleto (detecta R6/R15 automaticamente, com RGB)
+  - ESP Linha (com RGB)
+  - ESP Distância (metros até o inimigo)
+  - ESP Nome
+  - ESP Barra de Vida (com cor verde→amarelo→vermelho)
+
+Proteção:
+  - Anti Kick (bloqueia namecall Kick no LocalPlayer)
+  - Anti AFK (usa VirtualUser para manter ativo)
+
+================================================================
+  ESTRUTURA DE PASTAS
+================================================================
+
+artifacts/
+  api-server/           ← Express API
+    src/
+      routes/
+        keys.ts         ← Rotas de keys
+        health.ts       ← Health check
+      app.ts
+      server.ts
+  b13-hub/              ← Site React + Vite
+    public/
+      b13-coringa.lua   ← Script para download
+      sistema-completo.txt ← Este arquivo
+    src/
+      pages/
+        home.tsx
+        keys.tsx
+        validate.tsx
+        not-found.tsx
+      components/
+        layout.tsx
+      App.tsx
+      main.tsx
+      index.css
+lib/
+  api-spec/
+    openapi.yaml        ← Contrato OpenAPI
+  api-client-react/     ← Hooks gerados pelo Orval
+  api-zod/              ← Schemas Zod gerados pelo Orval
+  db/
+    src/schema/
+      keys.ts           ← Schema Drizzle
+
+================================================================
+  COMANDOS PARA RODAR LOCALMENTE
+================================================================
+
+# Instalar dependências
+pnpm install
+
+# Sincronizar banco de dados
+pnpm --filter @workspace/db run push
+
+# Rodar API (porta 5000)
+pnpm --filter @workspace/api-server run dev
+
+# Rodar site (porta definida em PORT)
+pnpm --filter @workspace/b13-hub run dev
+
+# Regenerar hooks da API (após mudar openapi.yaml)
+pnpm --filter @workspace/api-spec run codegen
+
+================================================================
+  INFORMAÇÕES DE CONTATO
+================================================================
+
+Discord: discord.gg/tDsNEjWT4j
+Script: B13 CORINGA FFH4X v2.0
+
+================================================================

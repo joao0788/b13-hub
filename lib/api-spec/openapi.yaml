@@ -1,0 +1,166 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: B13 CORINGA FFH4X API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: keys
+    description: Key management operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /keys/generate:
+    post:
+      operationId: generateKey
+      tags: [keys]
+      summary: Generate a new key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeyGenerateInput"
+      responses:
+        "201":
+          description: Key generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+  /keys:
+    get:
+      operationId: listKeys
+      tags: [keys]
+      summary: List all keys
+      responses:
+        "200":
+          description: List of keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Key"
+  /keys/validate/{keyValue}:
+    get:
+      operationId: validateKey
+      tags: [keys]
+      summary: Validate a key
+      parameters:
+        - name: keyValue
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyValidation"
+  /keys/{id}:
+    delete:
+      operationId: revokeKey
+      tags: [keys]
+      summary: Revoke a key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Key revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+  /keys/stats:
+    get:
+      operationId: getKeyStats
+      tags: [keys]
+      summary: Get key statistics
+      responses:
+        "200":
+          description: Key stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyStats"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Key:
+      type: object
+      required: [id, keyValue, duration, expiresAt, active, createdAt]
+      properties:
+        id:
+          type: integer
+        keyValue:
+          type: string
+        duration:
+          type: string
+          enum: [1min, 1day, 3days, 7days, 30days, permanent]
+        expiresAt:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        note:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+    KeyGenerateInput:
+      type: object
+      required: [duration]
+      properties:
+        duration:
+          type: string
+          enum: [1min, 1day, 3days, 7days, 30days, permanent]
+        note:
+          type: string
+    KeyValidation:
+      type: object
+      required: [valid]
+      properties:
+        valid:
+          type: boolean
+        key:
+          $ref: "#/components/schemas/Key"
+        message:
+          type: string
+    KeyStats:
+      type: object
+      required: [total, active, expired]
+      properties:
+        total:
+          type: integer
+        active:
+          type: integer
+        expired:
+          type: integer
+        permanent:
+          type: integer
